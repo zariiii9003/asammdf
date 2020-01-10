@@ -1148,6 +1148,7 @@ class DataBlockInfo:
         "param",
         "invalidation_block",
         "block_limit",
+        "data",
     )
 
     def __init__(
@@ -1159,6 +1160,7 @@ class DataBlockInfo:
         param,
         invalidation_block=None,
         block_limit=None,
+        data=None,
     ):
         self.address = address
         self.block_type = block_type
@@ -1167,6 +1169,7 @@ class DataBlockInfo:
         self.param = param
         self.invalidation_block = invalidation_block
         self.block_limit = block_limit
+        self.data = data
 
     def __repr__(self):
         return (
@@ -1193,8 +1196,9 @@ class InvalidationBlockInfo(DataBlockInfo):
         param,
         all_valid=False,
         block_limit=None,
+        data=None,
     ):
-        super().__init__(address, block_type, raw_size, size, param, block_limit)
+        super().__init__(address, block_type, raw_size, size, param, block_limit, data)
         self.all_valid = all_valid
 
     def __repr__(self):

@@ -314,6 +314,11 @@ class MDF4(object):
         self._master = None
 
         self.last_call_info = None
+        
+        self._cache = {
+            'size': 0,
+            'limit': 512 * 1024 * 1024,
+        }
 
         # make sure no appended block has the address 0
         self._tempfile.write(b"\0")
@@ -1605,13 +1610,14 @@ class MDF4(object):
                 while True:
                     try:
                         info = next(blocks)
-                        address, size, block_size, block_type, param, block_limit = (
+                        address, size, block_size, block_type, param, block_limit, new_data = (
                             info.address,
                             info.raw_size,
                             info.size,
                             info.block_type,
                             info.param,
                             info.block_limit,
+                            info.data,
                         )
 
                         if rm and invalidation_size:
@@ -1632,8 +1638,9 @@ class MDF4(object):
                                     invalidation_offset += invalidation_info.raw_size
                             continue
 
-                    seek(address)
-                    new_data = read(block_size)
+                    if new_data is None:
+                        seek(address)
+                        new_data = read(block_size)
                     if block_type == v4c.DZ_BLOCK_DEFLATE:
                         new_data = decompress(new_data, 0, size)
                     elif block_type == v4c.DZ_BLOCK_TRANSPOSED:
@@ -3644,7 +3651,12 @@ class MDF4(object):
                 data = lz_compress(data)
 
                 size = len(data)
-                self._tempfile.write(data)
+                
+                if self._cache['size'] < self._cache['limit']:
+                    self._cache['size'] += size
+                else:    
+                    self._tempfile.write(data)
+                    data = None
 
                 gp.data_blocks.append(
                     DataBlockInfo(
@@ -3653,6 +3665,7 @@ class MDF4(object):
                         raw_size=raw_size,
                         size=size,
                         param=0,
+                        data=data,
                     )
                 )
 
@@ -5780,7 +5793,13 @@ class MDF4(object):
                 raw_size = len(data)
                 data = lz_compress(data)
                 size = len(data)
-                stream.write(data)
+                
+                if self._cache['size'] < self._cache['limit']:
+                    self._cache['size'] += size
+                else:    
+                    stream.write(data)
+                    data = None
+                
                 gp.data_blocks.append(
                     DataBlockInfo(
                         address=addr,
@@ -5788,6 +5807,7 @@ class MDF4(object):
                         raw_size=raw_size,
                         size=size,
                         param=0,
+                        data=data,
                     )
                 )
 

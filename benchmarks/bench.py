@@ -18,6 +18,8 @@ except ImportError:
 import psutil
 import numpy as np
 
+sys.path.append('/home/daniel/Documents/asammdf')
+
 from asammdf import MDF, Signal
 from asammdf import __version__ as asammdf_version
 import asammdf.blocks.v4_constants as v4c
@@ -415,7 +417,8 @@ def merge_v4(output, fmt):
     files = [r"test.mf4",] * 3
 
     with Timer("Merge 3 files", f"asammdf {asammdf_version} v4", fmt) as timer:
-        MDF.concatenate(files, outversion="4.10")
+        mdf = MDF.concatenate(files, outversion="4.10").convert('4.11')
+    mdf.close()
     output.send([timer.output, timer.error])
 
 
@@ -955,7 +958,7 @@ def main(text_output, fmt):
     output.append("    * {} groups".format(v4_groups))
     output.append("    * {} channels\n\n".format(v4_channels))
 
-    OPEN, SAVE, GET, CONVERT, MERGE, FILTER, CUT = 1, 1, 1, 1, 1, 0, 0
+    OPEN, SAVE, GET, CONVERT, MERGE, FILTER, CUT = 0, 0, 0, 0, 1, 0, 0
 
     tests = (
 #        open_mdf3,
