@@ -3,12 +3,17 @@ import os
 from pathlib import Path
 import sys
 
+from PyInstaller.utils.hooks import copy_metadata
+
 sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 
 asammdf_path = Path.cwd() / "src" / "asammdf" / "app" / "asammdfgui.py"
 
 block_cipher = None
 added_files = []
+
+# get metadata for DependenciesDlg
+added_files += copy_metadata("asammdf", recursive=True)
 
 for root, dirs, files in os.walk(asammdf_path.parent / "ui"):
     for file in files:
