@@ -5,6 +5,30 @@ project(
   LANGUAGES C
   VERSION ${SKBUILD_PROJECT_VERSION})
 
+# ExternalProject for ISA-L
+include(ExternalProject)
+set(ISAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/asammdf/blocks/isa-l")
+if (WIN32)
+  set(ISAL_MAKE_CMD nmake /f Makefile.nmake)
+  set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/isa-l.lib)
+else()
+  set(ISAL_MAKE_CMD make -f Makefile.unx)
+  set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/bin/isa-l.a)
+endif()
+ExternalProject_Add(isal_ext_prj
+    SOURCE_DIR ${ISAL_SOURCE_DIR}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${ISAL_MAKE_CMD}
+    INSTALL_COMMAND ""  # No install step needed
+    BUILD_BYPRODUCTS ${ISAL_STATIC_LIB}
+    BUILD_IN_SOURCE 1   # Build within the source tree
+)
+
+# Define the ISA-L static library
+add_library(isal STATIC IMPORTED)
+set_target_properties(isal PROPERTIES IMPORTED_LOCATION ${ISAL_STATIC_LIB})
+include_directories(${ISAL_SOURCE_DIR}/include)
+
 find_package(
   Python
   COMPONENTS
@@ -17,8 +41,11 @@ find_package(
 python_add_library(cutils
                    MODULE
                    src/asammdf/blocks/cutils.c
+                   src/asammdf/blocks/miniz.c
+                   src/asammdf/blocks/zlib_isal.c
                    WITH_SOABI USE_SABI 3.9)
 
-target_link_libraries(cutils PRIVATE Python::NumPy)
+# link libraries to cutils
+target_link_libraries(cutils PRIVATE Python::NumPy isal)
 
 install(TARGETS cutils DESTINATION "asammdf/blocks")

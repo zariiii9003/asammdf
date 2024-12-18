@@ -1,4 +1,4 @@
-#include <isa-l/igzip_lib.h>
+#include <igzip_lib.h>
 #define ISAL_ZLIB	3
 #define ISAL_DEF_MAX_HIST_BITS 15
 #define ISAL_DECOMP_OK 0

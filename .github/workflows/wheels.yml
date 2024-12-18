@@ -13,6 +13,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Netwide Assembler
+        uses: ilammy/setup-nasm@v1
 
       # Used to host cibuildwheel
       - uses: actions/setup-python@v5
