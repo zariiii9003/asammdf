@@ -10,8 +10,7 @@
 #include <time.h>
 #define MAX_THREADS 12
 #include "miniz.h"
-#include "miniz.c"
-#include "zlib_isal.c"
+#include "zlib_isal.h"
 
 #if defined(_WIN32) 
     #include <windows.h>

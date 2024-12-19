@@ -9,15 +9,17 @@ project(
 include(ExternalProject)
 set(ISAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/asammdf/blocks/isa-l")
 if (WIN32)
+  set(ISAL_CFG_CMD "")
   set(ISAL_MAKE_CMD nmake /f Makefile.nmake)
   set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/isa-l.lib)
 else()
-  set(ISAL_MAKE_CMD make -f Makefile.unx)
-  set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/bin/isa-l.a)
+  set(ISAL_CFG_CMD ./autogen.sh && ./configure --enable-shared=no CFLAGS=-fPIC)
+  set(ISAL_MAKE_CMD make)
+  set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/.libs/libisal.a)
 endif()
 ExternalProject_Add(isal_ext_prj
     SOURCE_DIR ${ISAL_SOURCE_DIR}
-    CONFIGURE_COMMAND ""
+    CONFIGURE_COMMAND ${ISAL_CFG_CMD}
     BUILD_COMMAND ${ISAL_MAKE_CMD}
     INSTALL_COMMAND ""  # No install step needed
     BUILD_BYPRODUCTS ${ISAL_STATIC_LIB}
@@ -46,6 +48,7 @@ python_add_library(cutils
                    WITH_SOABI USE_SABI 3.9)
 
 # link libraries to cutils
-target_link_libraries(cutils PRIVATE Python::NumPy isal)
+target_link_libraries(cutils PRIVATE Python::NumPy)
+target_link_libraries(cutils PRIVATE isal)
 
 install(TARGETS cutils DESTINATION "asammdf/blocks")
