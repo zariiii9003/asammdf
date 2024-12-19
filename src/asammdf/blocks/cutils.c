@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <time.h>
 #include "miniz.h"
-#include "miniz.c"
 #include "libdeflate.h"
 #include "data_block_utilities.c"
 
