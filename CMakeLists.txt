@@ -9,7 +9,6 @@ project(
 include(ExternalProject)
 set(ISAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/asammdf/blocks/isa-l")
 if (WIN32)
-  set(ISAL_CFG_CMD "")
   set(ISAL_MAKE_CMD nmake /f Makefile.nmake)
   set(ISAL_STATIC_LIB ${ISAL_SOURCE_DIR}/isa-l.lib)
 else()
