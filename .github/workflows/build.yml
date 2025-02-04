@@ -1,24 +1,27 @@
-name: pyinstaller_build
+name: freeze_app
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  pyinstaller:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
           submodules: "recursive"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
 
       - name: Install linux libraries
         shell: bash
@@ -41,4 +44,32 @@ jobs:
         with:
           name: pyinstaller-${{ matrix.os }}
           path: dist/${{ matrix.os }}/**
+          if-no-files-found: error
+
+  cx-freeze:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: "recursive"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+         python-version: "3.12"
+
+      - name: Install Python packages
+        run: |
+          pip install tox
+
+      - name: Build the executable
+        run: |
+          tox -e cxfreeze
+
+      - name: Archive dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cxfreeze-windows-latest
+          path: build/exe.win-amd64-3.12/**
           if-no-files-found: error

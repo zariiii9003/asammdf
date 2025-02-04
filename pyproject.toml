@@ -173,3 +173,12 @@ ignore = [
 known-first-party = ["asammdf"]
 order-by-type = false
 force-sort-within-sections = true
+
+[tool.cxfreeze]
+executables = [
+    {script = "src/asammdf/app/asammdfgui.py", base = "gui", icon="asammdf.ico"}
+]
+
+[tool.cxfreeze.build_exe]
+excludes = ["tkinter", "unittest"]
+packages = ["OpenGL.platform", "canmatrix"]
