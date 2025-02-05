@@ -6,11 +6,12 @@ permissions:
   contents: read
 
 jobs:
-  pyinstaller:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install linux libraries
         shell: bash
@@ -34,42 +35,24 @@ jobs:
         run: |
           pip install tox
 
-      - name: Build the executable
+      - name: Build with PyInstaller
         run: |
           tox -e pyinstaller -- --distpath dist/${{ matrix.os }} --noconfirm --clean
 
-      # see: https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts
-      - name: Archive dist artifacts
+      - name: Archive PyInstaller artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pyinstaller-${{ matrix.os }}
           path: dist/${{ matrix.os }}/**
           if-no-files-found: error
 
-  cx-freeze:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          submodules: "recursive"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-         python-version: "3.12"
-
-      - name: Install Python packages
-        run: |
-          pip install tox
-
-      - name: Build the executable
+      - name: Build with cx_Freeze
         run: |
           tox -e cxfreeze
 
-      - name: Archive dist artifacts
+      - name: Archive cx_Freeze artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cxfreeze-windows-latest
-          path: build/exe.win-amd64-3.12/**
+          name: cxFreeze-${{ matrix.os }}
+          path: build/exe.*/**
           if-no-files-found: error
