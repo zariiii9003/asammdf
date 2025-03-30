@@ -118,7 +118,8 @@ This message will be closed in {self.timeout}s
         else:
             super().keyPressEvent(event)
 
-    def tick(self):
+    @QtCore.Slot()
+    def tick(self) -> None:
         self.timeout -= 1
         default = self.defaultButton()
 

@@ -1195,7 +1195,7 @@ class ColumnMenu(QtWidgets.QMenu):
 
 class TabularBase(Ui_TabularDisplay, QtWidgets.QWidget):
     add_channels_request = QtCore.Signal(list)
-    timestamp_changed_signal = QtCore.Signal(object, float)
+    timestamp_changed_signal = QtCore.Signal(QtWidgets.QWidget, float)
 
     def __init__(self, df, ranges=None, *args, **kwargs):
         super().__init__(*args, **kwargs)

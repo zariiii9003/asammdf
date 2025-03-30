@@ -1382,7 +1382,7 @@ class Plot(QtWidgets.QWidget):
     splitter_moved = QtCore.Signal(object, int)
     pattern_group_added = QtCore.Signal(object, object)
     verify_bookmarks = QtCore.Signal(list, object)
-    x_range_changed_signal = QtCore.Signal(object, object)
+    x_range_changed_signal = QtCore.Signal(QtWidgets.QWidget, object)
 
     item_double_click_handling = "enable/disable"
     dynamic_columns_width = True

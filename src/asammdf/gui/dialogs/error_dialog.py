@@ -66,10 +66,12 @@ class ErrorDialog(Ui_ErrorDialog, QtWidgets.QDialog):
             self.status.setText(f"This window will be closed in {self._timeout}s\nAbort the countdown - [F1]")
             self.timer.start(1000)
 
-    def copy_to_clipboard(self, event):
+    @QtCore.Slot()
+    def copy_to_clipboard(self) -> None:
         text = f"Error: {self.error_message.text()}\n\nDetails: {self.trace.toPlainText()}"
         QtWidgets.QApplication.instance().clipboard().setText(text)
 
+    @QtCore.Slot()
     def count_down(self):
         if self._timeout > 0:
             self._timeout -= 1
@@ -85,7 +87,8 @@ class ErrorDialog(Ui_ErrorDialog, QtWidgets.QDialog):
         else:
             super().keyPressEvent(event)
 
-    def show_trace(self, event):
+    @QtCore.Slot()
+    def show_trace(self) -> None:
         if self.trace.isHidden():
             self.trace.show()
             self.show_trace_btn.setText("Hide error trace")

@@ -1495,6 +1495,7 @@ class WithMDIArea:
         except MdfException:
             print(format_exc())
 
+    @QtCore.Slot(list)
     def add_window(self, args):
         window_type, names = args
 
@@ -4305,7 +4306,8 @@ class WithMDIArea:
                     except:
                         pass
 
-    def set_cursor(self, widget, pos):
+    @QtCore.Slot(QtWidgets.QWidget, float)
+    def set_cursor(self, widget: QtWidgets.QWidget, pos: float) -> None:
 
         if self._busy:
             return
@@ -4337,7 +4339,8 @@ class WithMDIArea:
 
         self._busy = False
 
-    def set_x_range(self, widget, x_range):
+    @QtCore.Slot(QtWidgets.QWidget, object)
+    def set_x_range(self, widget: QtWidgets.QWidget, x_range) -> None:
         if self._busy:
             return
         else:

@@ -171,7 +171,6 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
 
         state = self._settings.value("subplots", True, type=bool)
         subplot_action.toggled.connect(self.set_subplot_option)
-        subplot_action.triggered.connect(self.set_subplot_option)
         subplot_action.setChecked(state)
         menu.addAction(subplot_action)
 
@@ -849,8 +848,6 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
         self.with_dots = self._settings.value("dots", False, type=bool)
         self.setWindowTitle(f"asammdf {libversion} [PID={os.getpid()}] - Single files")
 
-        self.set_subplot_option(self._settings.value("subplots", "Disabled"))
-        self.set_subplot_link_option(self._settings.value("subplots_link", "Disabled"))
         self.hide_missing_channels = False
         self.hide_disabled_channels = False
 
@@ -868,10 +865,12 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
     def sizeHint(self):
         return QtCore.QSize(1, 1)
 
-    def help(self, event):
+    @QtCore.Slot()
+    def help(self) -> None:
         webbrowser.open_new(r"http://asammdf.readthedocs.io/en/master/gui.html")
 
-    def save_all_subplots(self, key):
+    @QtCore.Slot()
+    def save_all_subplots(self) -> None:
         if self.stackedWidget.currentIndex() == 0:
             widget = self.files.currentWidget()
         elif self.stackedWidget.currentIndex() == 2:
@@ -971,16 +970,15 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
             file = self.files.widget(i)
             file.set_cursor_options(cursor_circle, cursor_horizontal_line, cursor_line_width, cursor_color)
 
-    def set_subplot_option(self, state):
-        if isinstance(state, str):
-            state = True if state == "true" else False
-        self.set_subplots(state)
-        self._settings.setValue("subplots", state)
+    @QtCore.Slot(bool)
+    def set_subplot_option(self, checked: bool) -> None:
+        self.set_subplots(checked)
+        self._settings.setValue("subplots", checked)
 
         count = self.files.count()
 
         for i in range(count):
-            self.files.widget(i).set_subplots(state)
+            self.files.widget(i).set_subplots(checked)
 
     def set_plot_background(self, option):
         self._settings.setValue("plot_background", option)
@@ -1202,50 +1200,46 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
         for i in range(count):
             self.files.widget(i).set_line_interconnect(option)
 
-    def set_subplot_link_option(self, state):
-        if isinstance(state, str):
-            state = True if state == "true" else False
-        self.set_subplots_link(state)
-        self._settings.setValue("subplots_link", state)
+    @QtCore.Slot(bool)
+    def set_subplot_link_option(self, checked: bool) -> None:
+        self.set_subplots_link(checked)
+        self._settings.setValue("subplots_link", checked)
         count = self.files.count()
 
         for i in range(count):
             self.files.widget(i).set_subplots_link(self.subplots_link)
 
-    def set_tabular_interpolation_option(self, state):
-        if isinstance(state, str):
-            state = True if state == "true" else False
-        self._settings.setValue("tabular_interpolation", state)
+    @QtCore.Slot(bool)
+    def set_tabular_interpolation_option(self, checked: bool) -> None:
+        self._settings.setValue("tabular_interpolation", checked)
 
-    def set_ignore_value2text_conversions_option(self, state):
-        if isinstance(state, str):
-            state = True if state == "true" else False
-        self.ignore_value2text_conversions = state
-        self._settings.setValue("ignore_value2text_conversions", state)
+    @QtCore.Slot(bool)
+    def set_ignore_value2text_conversions_option(self, checked: bool) -> None:
+        self.ignore_value2text_conversions = checked
+        self._settings.setValue("ignore_value2text_conversions", checked)
         count = self.files.count()
 
         for i in range(count):
-            self.files.widget(i).ignore_value2text_conversions = state
-        self.batch.ignore_value2text_conversions = state
+            self.files.widget(i).ignore_value2text_conversions = checked
+        self.batch.ignore_value2text_conversions = checked
 
-    def set_display_cg_name_option(self, state):
-        if isinstance(state, str):
-            state = True if state == "true" else False
-        self.display_cg_name = state
-        self._settings.setValue("display_cg_name", state)
+    @QtCore.Slot(bool)
+    def set_display_cg_name_option(self, checked: bool) -> None:
+        self.display_cg_name = checked
+        self._settings.setValue("display_cg_name", checked)
         count = self.files.count()
 
         for i in range(count):
-            self.files.widget(i).display_cg_name = state
+            self.files.widget(i).display_cg_name = checked
             if self.files.widget(i).isVisible():
                 self.files.widget(i).update_all_channel_trees()
 
-        self.batch.display_cg_name = state
+        self.batch.display_cg_name = checked
 
     def update_progress(self, current_index, max_index):
         self.progress = current_index, max_index
 
-    def open_batch_files(self, event):
+    def open_batch_files(self) -> None:
         file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select measurement file",
@@ -1264,15 +1258,17 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
             for row in range(count):
                 self.batch.files_list.item(row).setIcon(icon)
 
-    def open(self, event):
+    @QtCore.Slot()
+    def open(self) -> None:
         if self.stackedWidget.currentIndex() in (0, 2):
-            self.open_file(event)
+            self.open_file()
             self.stackedWidget.setCurrentIndex(0)
         else:
-            self.open_batch_files(event)
+            self.open_batch_files()
 
-    def _open_file(self, file_name):
-        if isinstance(file_name, tuple | list):
+    @QtCore.Slot(object)
+    def _open_file(self, file_name: str | list[str]) -> None:
+        if isinstance(file_name, list):
             file_names = file_name
         else:
             file_names = [file_name]
@@ -1308,7 +1304,7 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
 
                 self.edit_cursor_options()
 
-    def open_file(self, event):
+    def open_file(self) -> None:
         system = platform.system().lower()
         if system == "linux":
             # see issue #567
@@ -1337,7 +1333,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
         for file_name in natsorted(file_names):
             self._open_file(file_name)
 
-    def open_folder(self, event):
+    @QtCore.Slot()
+    def open_folder(self) -> None:
         folder = QtWidgets.QFileDialog.getExistingDirectory(
             self,
             "Select folder",
@@ -1369,7 +1366,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
             self.batch._ignore = False
             self.batch.update_channel_tree()
 
-    def close_file(self, index):
+    @QtCore.Slot(int)
+    def close_file(self, index: int) -> None:
         widget = self.files.widget(index)
         if widget:
             widget.close()
@@ -1412,7 +1410,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
         except:
             pass
 
-    def mode_changed(self, index):
+    @QtCore.Slot(int)
+    def mode_changed(self, index: int) -> None:
         if index == 0:
             self.plot_menu.setEnabled(True)
             self.setWindowTitle(f"asammdf {libversion} [PID={os.getpid()}] - Single files")
@@ -1486,19 +1485,21 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
                     window_type = "Numeric"
                 elif key == QtCore.Qt.Key.Key_F4:
                     window_type = "Tabular"
-                self.files.currentWidget()._create_window(None, window_type)
+                self.files.currentWidget()._create_window(window_type=window_type)
             event.accept()
 
         else:
             super().keyPressEvent(event)
 
-    def comparison_search(self, event):
+    @QtCore.Slot()
+    def comparison_search(self) -> None:
         event = QtGui.QKeyEvent(
             QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key.Key_F, QtCore.Qt.KeyboardModifier.ControlModifier
         )
         self.keyPressEvent(event)
 
-    def comparison_info(self, event):
+    @QtCore.Slot()
+    def comparison_info(self) -> None:
         count = self.files.count()
         measurements = [str(self.files.widget(i).mdf.name) for i in range(count)]
 
@@ -1508,7 +1509,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
 
         MessageBox.information(self, "Measurement files used for comparison", "\n".join(info))
 
-    def toggle_fullscreen(self):
+    @QtCore.Slot()
+    def toggle_fullscreen(self) -> None:
         if self.files.count() > 0 or self.fullscreen is not None:
             if self.fullscreen is None:
                 index = self.files.currentIndex()
@@ -1537,13 +1539,15 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
                 for i in range(count):
                     self.files.widget(i).set_line_style(with_dots=self.with_dots)
 
-    def toggle_frames(self, event=None):
+    @QtCore.Slot()
+    def toggle_frames(self):
         count = self.files.count()
 
         for i in range(count):
             self.files.widget(i).toggle_frames()
 
-    def toggle_channels_list(self, event=None):
+    @QtCore.Slot()
+    def toggle_channels_list(self) -> None:
         if self.stackedWidget.currentIndex() == 0:
             widget = self.files.currentWidget()
             event = QtGui.QKeyEvent(
@@ -1552,19 +1556,22 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
             if widget:
                 widget.keyPressEvent(event)
 
-    def open_configuration(self, event=None):
+    @QtCore.Slot()
+    def open_configuration(self) -> None:
         if self.stackedWidget.currentIndex() == 0:
             widget = self.files.currentWidget()
             if widget:
                 widget.load_channel_list()
 
-    def save_configuration(self, event=None):
+    @QtCore.Slot()
+    def save_configuration(self) -> None:
         if self.stackedWidget.currentIndex() == 0:
             widget = self.files.currentWidget()
             if widget:
                 widget.save_channel_list()
 
-    def functions_manager(self):
+    @QtCore.Slot()
+    def functions_manager(self) -> None:
         if self.stackedWidget.currentIndex() == 0:
             file = self.files.currentWidget()
             if file:
@@ -1595,7 +1602,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
                         original_definitions, modified_definitions, new_global_variables=new_global_variables
                     )
 
-    def bus_database_manager(self):
+    @QtCore.Slot()
+    def bus_database_manager(self) -> None:
         dlg = BusDatabaseManagerDialog(parent=self)
         dlg.setModal(True)
         dlg.exec_()
@@ -1603,7 +1611,8 @@ class MainWindow(WithMDIArea, Ui_PyMDFMainWindow, QtWidgets.QMainWindow):
         if dlg.pressed_button == "apply":
             dlg.store()
 
-    def show_about(self):
+    @QtCore.Slot()
+    def show_about(self) -> None:
         bits = "x86" if sys.maxsize < 2**32 else "x64"
         cpython = ".".join(str(e) for e in sys.version_info[:3])
         cpython = f"{cpython} {bits}"

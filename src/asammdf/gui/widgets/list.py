@@ -411,7 +411,8 @@ class MinimalListWidget(QtWidgets.QListWidget):
 
         self.user_editable = True
 
-    def item_selection_changed(self, item=None):
+    @QtCore.Slot()
+    def item_selection_changed(self) -> None:
         try:
             selection = list(self.selectedItems())
             for row in range(self.count()):
@@ -496,7 +497,8 @@ class MinimalListWidget(QtWidgets.QListWidget):
         else:
             super().keyPressEvent(event)
 
-    def open_menu(self, position):
+    @QtCore.Slot(QtCore.QPoint)
+    def open_menu(self, position: QtCore.QPoint) -> None:
         menu = QtWidgets.QMenu()
 
         if self.minimal_menu:

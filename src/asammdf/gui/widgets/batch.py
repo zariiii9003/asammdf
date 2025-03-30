@@ -230,7 +230,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
             self.mdf_compression.clear()
             self.mdf_compression.addItems(options)
 
-    def set_raster_type(self, event=None):
+    @QtCore.Slot(bool)
+    def set_raster_type(self, checked: bool | None = None) -> None:
         if self.raster_type_channel.isChecked():
             self.raster_channel.setEnabled(True)
             self.raster_search_btn.setEnabled(True)
@@ -284,7 +285,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
     def scramble_finished(self):
         self._progress = None
 
-    def scramble(self, event):
+    @QtCore.Slot()
+    def scramble(self) -> None:
         count = self.files_list.count()
         source_files = [Path(self.files_list.item(row).text()) for row in range(count)]
 
@@ -307,7 +309,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
             self.output_info_bus.setPlainText("\n".join(message))
         self._progress = None
 
-    def extract_bus_logging(self, event):
+    @QtCore.Slot()
+    def extract_bus_logging(self) -> None:
         version = self.extract_bus_format.currentText()
 
         self.output_info_bus.setPlainText("")
@@ -457,7 +460,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
 
         self._progress = None
 
-    def extract_bus_csv_logging(self, event):
+    @QtCore.Slot()
+    def extract_bus_csv_logging(self) -> None:
         version = self.extract_bus_format.currentText()
 
         self.output_info_bus.setPlainText("")
@@ -653,7 +657,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
 
         return message
 
-    def load_can_database(self, event):
+    @QtCore.Slot()
+    def load_can_database(self) -> None:
         file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select CAN database file",
@@ -674,7 +679,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
                 self.can_database_list.setItemWidget(item, widget)
                 item.setSizeHint(widget.sizeHint())
 
-    def load_lin_database(self, event):
+    @QtCore.Slot()
+    def load_lin_database(self) -> None:
         file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select LIN database file",
@@ -698,7 +704,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
     def concatenate_finished(self):
         self._progress = None
 
-    def concatenate(self, event=None):
+    @QtCore.Slot()
+    def concatenate(self) -> None:
         count = self.files_list.count()
 
         if not count:
@@ -865,7 +872,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
     def stack_finished(self):
         self._progress = None
 
-    def stack(self, event):
+    @QtCore.Slot()
+    def stack(self) -> None:
         count = self.files_list.count()
 
         if not count:
@@ -998,7 +1006,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
 
         return needs_filter, channels
 
-    def raster_search(self, event):
+    @QtCore.Slot()
+    def raster_search(self) -> None:
         if not self.files_list.count():
             return
 
@@ -1019,7 +1028,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
                 name = list(result)[0]
                 self.raster_channel.setCurrentText(name)
 
-    def filter_changed(self, item, column=0):
+    @QtCore.Slot(QtWidgets.QTreeWidgetItem, int)
+    def filter_changed(self, item: QtWidgets.QTreeWidgetItem, column: int) -> None:
         name = item.text(0)
         if item.checkState(0) == QtCore.Qt.CheckState.Checked:
             self._selected_filter.add(name)
@@ -1028,11 +1038,13 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
                 self._selected_filter.remove(name)
         self._filter_timer.start(10)
 
-    def update_selected_filter_channels(self, *args):
+    @QtCore.Slot()
+    def update_selected_filter_channels(self) -> None:
         self.selected_filter_channels.clear()
         self.selected_filter_channels.addItems(sorted(self._selected_filter))
 
-    def search(self, event=None):
+    @QtCore.Slot()
+    def search(self) -> None:
         count = self.files_list.count()
         if not count:
             return
@@ -1130,6 +1142,9 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
         finally:
             mdf.close()
 
+    @QtCore.Slot(int)
+    @QtCore.Slot(list)
+    @QtCore.Slot(QtCore.QModelIndex, int, int)
     def update_channel_tree(self, *args):
         if self.filter_view.currentIndex() == -1 or self._ignore:
             return
@@ -1379,7 +1394,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
     def apply_processing_finished(self):
         self._progress = None
 
-    def apply_processing(self, event):
+    @QtCore.Slot()
+    def apply_processing(self) -> None:
         opts = self._current_options()
 
         output_format = opts.output_format
@@ -1737,12 +1753,14 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
 
             mdf.close()
 
-    def change_modify_output_folder(self, event=None):
+    @QtCore.Slot()
+    def change_modify_output_folder(self) -> None:
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select output folder", "")
         if folder:
             self.modify_output_folder.setText(str(Path(folder)))
 
-    def output_format_changed(self, name):
+    @QtCore.Slot(str)
+    def output_format_changed(self, name: str) -> None:
         if name == "MDF":
             self.output_options.setCurrentWidget(self.MDF)
         elif name == "MAT":
@@ -1771,7 +1789,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
                 self.export_compression.clear()
                 self.export_compression.setEnabled(False)
 
-    def sort_alphabetically(self, event=None):
+    @QtCore.Slot()
+    def sort_alphabetically(self) -> None:
         count = self.files_list.count()
 
         if not count:
@@ -1787,7 +1806,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
         for row in range(count):
             self.files_list.item(row).setIcon(icon)
 
-    def sort_by_start_time(self, event=None):
+    @QtCore.Slot()
+    def sort_by_start_time(self) -> None:
         count = self.files_list.count()
 
         if not count:
@@ -1827,7 +1847,8 @@ class BatchWidget(Ui_batch_widget, QtWidgets.QWidget):
         for row in range(count):
             self.files_list.item(row).setIcon(icon)
 
-    def save_filter_list(self):
+    @QtCore.Slot()
+    def save_filter_list(self) -> None:
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Select output filter list file",
@@ -1880,23 +1901,23 @@ MultiRasterSeparator;&
                     output.write(f"[{section_name}]\n")
                 output.write("\n".join(natsorted(signals)))
 
-    def load_filter_list(self, event=None, file_name=None):
-        if file_name is None:
-            file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self,
-                "Select channel list file",
-                "",
-                "Config file (*.cfg);;Display files (*.dsp *.dspf);;CANape Lab file (*.lab);;All file types (*.cfg *.dsp *.dspf *.lab)",
-                "All file types (*.cfg *.dsp *.dspf *.lab)",
-            )
+    @QtCore.Slot()
+    def load_filter_list(self) -> None:
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select channel list file",
+            "",
+            "Config file (*.cfg);;Display files (*.dsp *.dspf);;CANape Lab file (*.lab);;All file types (*.cfg *.dsp *.dspf *.lab)",
+            "All file types (*.cfg *.dsp *.dspf *.lab)",
+        )
 
-            if file_name is None or Path(file_name).suffix.lower() not in (
-                ".cfg",
-                ".dsp",
-                ".dspf",
-                ".lab",
-            ):
-                return
+        if file_name is None or Path(file_name).suffix.lower() not in (
+            ".cfg",
+            ".dsp",
+            ".dspf",
+            ".lab",
+        ):
+            return
 
         if not isinstance(file_name, dict):
             file_name = Path(file_name)
@@ -2100,6 +2121,10 @@ MultiRasterSeparator;&
         self.mat_format.setCurrentText(self._settings.value("export_batch/MAT/mat_format", "4"))
         self.oned_as.setCurrentText(self._settings.value("export_batch/MAT/oned_as", "row"))
 
+    @QtCore.Slot()
+    @QtCore.Slot(str)
+    @QtCore.Slot(float)
+    @QtCore.Slot(QtCore.Qt.CheckState)
     def store_export_setttings(self, *args):
         self._settings.setValue("export_batch", self.output_format.currentText())
 
@@ -2142,7 +2167,8 @@ MultiRasterSeparator;&
         self._settings.setValue("export_batch/MAT/mat_format", self.mat_format.currentText())
         self._settings.setValue("export_batch/MAT/oned_as", self.oned_as.currentText())
 
-    def clear_filter(self):
+    @QtCore.Slot()
+    def clear_filter(self) -> None:
         iterator = QtWidgets.QTreeWidgetItemIterator(self.filter_tree)
 
         if self.filter_view.currentIndex() == 1:

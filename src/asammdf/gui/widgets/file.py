@@ -585,7 +585,8 @@ class FileWidget(WithMDIArea, Ui_file_widget, QtWidgets.QWidget):
     def sizeHint(self):
         return QtCore.QSize(1, 1)
 
-    def set_raster_type(self, event=None):
+    @QtCore.Slot(bool)
+    def set_raster_type(self, checked: bool | None = None):
         if self.raster_type_channel.isChecked():
             self.raster_channel.setEnabled(True)
             self.raster_search_btn.setEnabled(True)
@@ -751,7 +752,8 @@ class FileWidget(WithMDIArea, Ui_file_widget, QtWidgets.QWidget):
         setting = "channels_view" if widget is self.channels_tree else "filter_view"
         self._settings.setValue(setting, view.currentText())
 
-    def output_format_changed(self, name):
+    @QtCore.Slot(str)
+    def output_format_changed(self, name: str) -> None:
         if name == "MDF":
             self.output_options.setCurrentWidget(self.MDF)
         elif name == "MAT":
@@ -781,7 +783,8 @@ class FileWidget(WithMDIArea, Ui_file_widget, QtWidgets.QWidget):
                 self.export_compression.clear()
                 self.export_compression.setEnabled(False)
 
-    def search(self, event=None):
+    @QtCore.Slot()
+    def search(self) -> None:
         toggle_frames = False
         if self.aspects.tabText(self.aspects.currentIndex()) == "Channels":
             show_add_window = True
@@ -1067,19 +1070,19 @@ class FileWidget(WithMDIArea, Ui_file_widget, QtWidgets.QWidget):
 
         return config
 
-    def save_channel_list(self, event=None, file_name=None):
-        if file_name is None:
-            if self.loaded_display_file[0].is_file():
-                dir = str(self.loaded_display_file[0])
-            else:
-                dir = self.default_folder
+    @QtCore.Slot()
+    def save_channel_list(self) -> None:
+        if self.loaded_display_file[0].is_file():
+            dir = str(self.loaded_display_file[0])
+        else:
+            dir = self.default_folder
 
-            file_name, _ = QtWidgets.QFileDialog.getSaveFileName(
-                self,
-                "Select output display file",
-                dir,
-                "Display files (*.dspf)",
-            )
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Select output display file",
+            dir,
+            "Display files (*.dspf)",
+        )
 
         if file_name:
             file_name = Path(file_name).with_suffix(".dspf")
@@ -1401,7 +1404,8 @@ class FileWidget(WithMDIArea, Ui_file_widget, QtWidgets.QWidget):
                 parent=self,
             ).exec()
 
-    def save_filter_list(self):
+    @QtCore.Slot()
+    def save_filter_list(self) -> None:
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Select output filter list file",
@@ -1454,24 +1458,24 @@ MultiRasterSeparator;&
                     output.write(f"[{section_name}]\n")
                 output.write("\n".join(natsorted(signals)))
 
-    def load_filter_list(self, event=None, file_name=None):
-        if file_name is None:
-            file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self,
-                "Select channel list file",
-                self.default_folder,
-                "Config file (*.cfg);;Display files (*.dsp *.dspf);;CANape Lab file (*.lab);;All file types (*.cfg *.dsp *.dspf *.lab)",
-                "All file types (*.cfg *.dsp *.dspf *.lab)",
-            )
+    @QtCore.Slot()
+    def load_filter_list(self) -> None:
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select channel list file",
+            self.default_folder,
+            "Config file (*.cfg);;Display files (*.dsp *.dspf);;CANape Lab file (*.lab);;All file types (*.cfg *.dsp *.dspf *.lab)",
+            "All file types (*.cfg *.dsp *.dspf *.lab)",
+        )
 
-            if file_name is None or Path(file_name).suffix.lower() not in (
-                ".cfg",
-                ".dsp",
-                ".dspf",
-                ".lab",
-                ".txt",
-            ):
-                return
+        if file_name is None or Path(file_name).suffix.lower() not in (
+            ".cfg",
+            ".dsp",
+            ".dspf",
+            ".lab",
+            ".txt",
+        ):
+            return
 
         if not isinstance(file_name, dict):
             file_name = Path(file_name)
@@ -1586,7 +1590,8 @@ MultiRasterSeparator;&
     def update_progress(self, current_index, max_index):
         self.progress = current_index, max_index
 
-    def show_info(self, item, column):
+    @QtCore.Slot(QtWidgets.QTreeWidgetItem, int)
+    def show_info(self, item: QtWidgets.QTreeWidgetItem, column: int) -> None:
         group_index, index = item.entry
         if index == 0xFFFFFFFFFFFFFFFF:
             group = self.mdf.groups[group_index]
@@ -1599,7 +1604,8 @@ MultiRasterSeparator;&
             msg = ChannelInfoDialog(channel, self)
             msg.show()
 
-    def clear_filter(self):
+    @QtCore.Slot()
+    def clear_filter(self) -> None:
         iterator = QtWidgets.QTreeWidgetItemIterator(self.filter_tree)
 
         if self.filter_view.currentIndex() == 1:
@@ -1614,7 +1620,8 @@ MultiRasterSeparator;&
                 item.setCheckState(0, QtCore.Qt.CheckState.Unchecked)
                 iterator += 1
 
-    def clear_channels(self):
+    @QtCore.Slot()
+    def clear_channels(self) -> None:
         iterator = QtWidgets.QTreeWidgetItemIterator(self.channels_tree)
 
         if self.channel_view.currentIndex() == 1:
@@ -1629,7 +1636,8 @@ MultiRasterSeparator;&
                 item.setCheckState(0, QtCore.Qt.CheckState.Unchecked)
                 iterator += 1
 
-    def select_all_channels(self):
+    @QtCore.Slot()
+    def select_all_channels(self) -> None:
         iterator = QtWidgets.QTreeWidgetItemIterator(self.channels_tree)
 
         if self.channel_view.currentIndex() == 1:
@@ -1656,7 +1664,8 @@ MultiRasterSeparator;&
 
         self.mdf = None
 
-    def _create_window(self, event=None, window_type=None):
+    @QtCore.Slot(bool)
+    def _create_window(self, checked: bool = False, window_type: str | None = None) -> None:
         if window_type is None:
             dialog = WindowSelectionDialog(
                 options=(
@@ -1741,59 +1750,55 @@ MultiRasterSeparator;&
             else:
                 return
         else:
-            try:
-                iter(event)
-                signals = event
-            except:
-                iterator = QtWidgets.QTreeWidgetItemIterator(self.channels_tree)
+            iterator = QtWidgets.QTreeWidgetItemIterator(self.channels_tree)
 
-                signals = []
+            signals = []
 
-                if self.channel_view.currentIndex() == 1:
-                    while item := iterator.value():
-                        if item.parent() is None:
-                            iterator += 1
-                            continue
-
-                        if item.checkState(0) == QtCore.Qt.CheckState.Checked:
-                            group, index = item.entry
-                            ch = self.mdf.groups[group].channels[index]
-                            if not ch.component_addr:
-                                signals.append(
-                                    {
-                                        "name": ch.name,
-                                        "group_index": group,
-                                        "channel_index": index,
-                                        "origin_uuid": self.uuid,
-                                        "type": "channel",
-                                        "ranges": [],
-                                        "uuid": os.urandom(6).hex(),
-                                        "enabled": not disable_new_channels,
-                                    }
-                                )
-
+            if self.channel_view.currentIndex() == 1:
+                while item := iterator.value():
+                    if item.parent() is None:
                         iterator += 1
-                else:
-                    while item := iterator.value():
+                        continue
 
-                        if item.checkState(0) == QtCore.Qt.CheckState.Checked:
-                            group, index = item.entry
-                            ch = self.mdf.groups[group].channels[index]
-                            if not ch.component_addr:
-                                signals.append(
-                                    {
-                                        "name": ch.name,
-                                        "group_index": group,
-                                        "channel_index": index,
-                                        "origin_uuid": self.uuid,
-                                        "type": "channel",
-                                        "ranges": [],
-                                        "uuid": os.urandom(6).hex(),
-                                        "enabled": not disable_new_channels,
-                                    }
-                                )
+                    if item.checkState(0) == QtCore.Qt.CheckState.Checked:
+                        group, index = item.entry
+                        ch = self.mdf.groups[group].channels[index]
+                        if not ch.component_addr:
+                            signals.append(
+                                {
+                                    "name": ch.name,
+                                    "group_index": group,
+                                    "channel_index": index,
+                                    "origin_uuid": self.uuid,
+                                    "type": "channel",
+                                    "ranges": [],
+                                    "uuid": os.urandom(6).hex(),
+                                    "enabled": not disable_new_channels,
+                                }
+                            )
 
-                        iterator += 1
+                    iterator += 1
+            else:
+                while item := iterator.value():
+
+                    if item.checkState(0) == QtCore.Qt.CheckState.Checked:
+                        group, index = item.entry
+                        ch = self.mdf.groups[group].channels[index]
+                        if not ch.component_addr:
+                            signals.append(
+                                {
+                                    "name": ch.name,
+                                    "group_index": group,
+                                    "channel_index": index,
+                                    "origin_uuid": self.uuid,
+                                    "type": "channel",
+                                    "ranges": [],
+                                    "uuid": os.urandom(6).hex(),
+                                    "enabled": not disable_new_channels,
+                                }
+                            )
+
+                    iterator += 1
 
         self.add_window((window_type, signals))
 
@@ -1814,7 +1819,8 @@ MultiRasterSeparator;&
 
         self._progress = None
 
-    def scramble(self, event):
+    @QtCore.Slot()
+    def scramble(self) -> None:
         self._progress = setup_progress(parent=self)
         self._progress.finished.connect(self.scramble_finished)
 
@@ -1846,7 +1852,8 @@ MultiRasterSeparator;&
 
         self._progress = None
 
-    def extract_bus_logging(self, event):
+    @QtCore.Slot()
+    def extract_bus_logging(self) -> None:
         version = self.extract_bus_format.currentText()
 
         self.output_info_bus.setPlainText("")
@@ -1992,7 +1999,8 @@ MultiRasterSeparator;&
 
         self._progress = None
 
-    def extract_bus_csv_logging(self, event):
+    @QtCore.Slot()
+    def extract_bus_csv_logging(self) -> None:
         version = self.extract_bus_format.currentText()
 
         self.output_info_bus.setPlainText("")
@@ -2178,7 +2186,8 @@ MultiRasterSeparator;&
 
         return message
 
-    def load_can_database(self, event):
+    @QtCore.Slot()
+    def load_can_database(self) -> None:
         file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select CAN database file",
@@ -2199,7 +2208,8 @@ MultiRasterSeparator;&
                 self.can_database_list.setItemWidget(item, widget)
                 item.setSizeHint(widget.sizeHint())
 
-    def load_lin_database(self, event):
+    @QtCore.Slot()
+    def load_lin_database(self) -> None:
         file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Select LIN database file",
@@ -2301,7 +2311,8 @@ MultiRasterSeparator;&
             else:
                 super().keyPressEvent(event)
 
-    def aspect_changed(self, index=None):
+    @QtCore.Slot(int)
+    def aspect_changed(self, index: int) -> None:
         current_index = self.aspects.currentIndex()
         count = self.aspects.count()
         for i in range(count):
@@ -2691,7 +2702,8 @@ MultiRasterSeparator;&
 
         return needs_filter, channels
 
-    def apply_processing(self, event):
+    @QtCore.Slot()
+    def apply_processing(self) -> None:
         needs_filter, channels = self._get_filtered_channels()
 
         opts = self._current_options()
@@ -3044,7 +3056,8 @@ MultiRasterSeparator;&
             except:
                 print(format_exc())
 
-    def raster_search(self, event):
+    @QtCore.Slot()
+    def raster_search(self) -> None:
         dlg = AdvancedSearch(
             self.mdf,
             show_add_window=False,
@@ -3061,7 +3074,8 @@ MultiRasterSeparator;&
             name = list(result)[0]
             self.raster_channel.setCurrentText(name)
 
-    def filter_changed(self, item, column=0):
+    @QtCore.Slot(QtWidgets.QTreeWidgetItem, int)
+    def filter_changed(self, item: QtWidgets.QTreeWidgetItem, column: int) -> None:
         name = item.text(0)
         if self.filter_view.currentText() == "Internal file structure":
             if item.checkState(0) == QtCore.Qt.CheckState.Checked and item.parent() is not None:
@@ -3087,11 +3101,13 @@ MultiRasterSeparator;&
 
         self._filter_timer.start(10)
 
-    def update_selected_filter_channels(self):
+    @QtCore.Slot()
+    def update_selected_filter_channels(self) -> None:
         self.selected_filter_channels.clear()
         self.selected_filter_channels.addItems(sorted(self._selected_filter))
 
-    def embed_display_file(self, event=None):
+    @QtCore.Slot()
+    def embed_display_file(self) -> None:
         if not self.save_embedded_channel_list_btn.isVisible() or not self.save_embedded_channel_list_btn.isEnabled():
             return
 
@@ -3365,7 +3381,8 @@ MultiRasterSeparator;&
 
             self.aspects.setTabVisible(4, True)
 
-    def load_embedded_display_file(self, event=None):
+    @QtCore.Slot()
+    def load_embedded_display_file(self) -> None:
         if not self.load_embedded_channel_list_btn.isVisible() or not self.load_embedded_channel_list_btn.isEnabled():
             return
 
@@ -3480,6 +3497,10 @@ MultiRasterSeparator;&
         self.mat_format.setCurrentText(self._settings.value("export/MAT/mat_format", "4"))
         self.oned_as.setCurrentText(self._settings.value("export/MAT/oned_as", "row"))
 
+    @QtCore.Slot()
+    @QtCore.Slot(str)
+    @QtCore.Slot(float)
+    @QtCore.Slot(QtCore.Qt.CheckState)
     def store_export_setttings(self, *args):
         self._settings.setValue("export", self.output_format.currentText())
 

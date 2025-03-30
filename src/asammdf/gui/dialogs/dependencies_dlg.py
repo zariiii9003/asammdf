@@ -4,7 +4,7 @@ from importlib.metadata import distribution, PackageNotFoundError
 import re
 
 from packaging.requirements import Requirement
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, Slot
 from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import (
     QDialog,
@@ -112,6 +112,7 @@ class DependenciesDlg(QDialog):
 
                 parent_node.addChild(item)
 
+    @Slot(QTreeWidgetItem, int)
     def _on_item_double_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         if column != 0:
             return
@@ -121,6 +122,7 @@ class DependenciesDlg(QDialog):
         package_name = item.text(0)
         DependenciesDlg.show_dependencies(package_name, is_root_package=False)
 
+    @Slot()
     def _on_copy_button_clicked(self) -> None:
         """Create a list of all dependencies and their versions and write it to clipboard."""
         lines: list[str] = []
